@@ -16,7 +16,7 @@ dependencies:
   authoros_core:
     git:
       url: https://github.com/Ink-Insight-Software/authoros-core.git
-      ref: 148df25d6ae03629e48e0a500f8f0a0bdb0006f5
+      ref: 1b2bc7549cd6cc69756ef23e503fa0713982277d
   flutter:
     sdk: flutter
 

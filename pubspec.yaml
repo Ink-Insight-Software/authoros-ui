@@ -1,0 +1,25 @@
+name: authoros_ui
+description: >-
+  Flutter widgets AuthorOS Write and the standalone applications share, over
+  authoros_core: one renderer for record fields, so a field is drawn and
+  edited the same way wherever a record is.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  # Pinned by commit. An application that depends on this package pins
+  # authoros_core at the same commit, or pub reports the conflict.
+  authoros_core:
+    git:
+      url: https://github.com/Ink-Insight-Software/authoros-core.git
+      ref: 148df25d6ae03629e48e0a500f8f0a0bdb0006f5
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

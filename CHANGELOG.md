@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Pins `authoros_core` at 0.12.0 (`6945873`, the merge of
+  authoros-core#12), in step with `authoros_persistence` 0.2.4, since pub
+  takes one ref per package. No code changed.
+
 ## 0.1.0
 
 - **`RecordFieldInputs` and `OptionLabel`, moved in from AOS-Write's

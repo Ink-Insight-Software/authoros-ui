@@ -4,7 +4,7 @@ description: >-
   authoros_core: one renderer for record fields, so a field is drawn and
   edited the same way wherever a record is.
 publish_to: none
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -16,7 +16,7 @@ dependencies:
   authoros_core:
     git:
       url: https://github.com/Ink-Insight-Software/authoros-core.git
-      ref: 1b2bc7549cd6cc69756ef23e503fa0713982277d
+      ref: 694587371f18a9d4cbba6733438520bb3e71006a
   flutter:
     sdk: flutter
 

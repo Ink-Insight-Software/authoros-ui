@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+- **`FieldWithTruth`, moved in from AOS-Write's bible pages** (October 7,
+  2026): one field and, where the author wants one, the hidden truth beside
+  it (`HiddenTruths`, `_truth.values` in the core). AOS Worldsmith edits a
+  civilisation's public identity and hidden reality with it.
+- Who may add a truth is the caller's: `truthsOpen` and `onLocked`. AOS-Write
+  and Worldsmith both sell hidden truths with Codex Bibles; this package
+  knows no product. A truth already written is always shown and editable.
+- Additive: `RecordFieldInputs` and `OptionLabel` are unchanged.
+
 ## 0.1.1
 
 - Pins `authoros_core` at 0.12.0 (`6945873`, the merge of

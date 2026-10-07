@@ -27,9 +27,13 @@ suite runs against it before it ships.
   values: AOS-Write applies its field ownership there.
 - **`OptionLabel`** (`option_label.dart`): an option, with what it means
   underneath when something describes it.
+- **`FieldWithTruth`** (`field_with_truth.dart`): one field and the hidden
+  truth beside it, when the author adds one (`HiddenTruths` in the core).
+  Whether a new truth may be added is the caller's to say (`truthsOpen`,
+  `onLocked`); a truth already written always shows.
 
-Neither reads a database or an entitlement: definitions and values in,
-values out.
+None reads a database or an entitlement: definitions and values in, values
+out.
 
 ## Using it
 

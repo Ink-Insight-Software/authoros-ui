@@ -35,6 +35,42 @@ suite runs against it before it ships.
 None reads a database or an entitlement: definitions and values in, values
 out.
 
+### The book exporters (`book/`)
+
+Moved in from AOS-Write's `lib/book/` on October 8, 2026, so AOS Worldsmith
+exports a civilisation dossier through the same Markdown and PDF exporters a
+manuscript goes through, not a second pair (the owner's choice). AOS-Write
+keeps its old import paths as re-exports, so nothing there changed but where
+the code lives.
+
+- **`BookDocument`** (`book/book_document.dart`): a book in reading order:
+  metadata, front matter, parts and chapters of paragraphs, back matter.
+  `BookDocumentBuilder` builds one from a manuscript (`ManuscriptChapter`
+  and friends in the core); an application with no manuscript builds one by
+  hand.
+- **`BookMarkdownExporter`** and **`BookTextExporter`**: a `BookDocument`
+  to Markdown or plain text.
+- **`BookLayoutEngine`** and **`BookPdfRenderer`**: a `BookDocument` laid out
+  in a `BookFormat` (`BookFormatPresets`), then rendered to the same PDF
+  bytes every time.
+- What they need: `BookFormat`, `BookFontAssets` and its metrics,
+  `inline_markup.dart`, `epub_settings.dart`, and the marketing kit and quote
+  a `BookProject` carries. Plus `scene_break_markers.dart`, at the top level
+  because it is a fact about what an author typed, not about a book.
+
+**The fonts are the application's.** `BookFontAssets.load()` reads
+`assets/fonts/Merriweather-*.ttf` and `assets/fonts/Inter-*.ttf` from the
+application's own bundle (the paths are `BookFontAssets.assetPaths`), so an
+application that lays books out ships those eight files and declares them as
+assets. They are not package assets because AOS-Write already bundles them
+for its interface, and a second copy would ship twice. `load()` expects all
+eight and fails without them; a caller holding fewer builds `BookFontAssets`
+from the bytes it has, and the layout substitutes the faces it lacks. The one
+face under `test/fonts/` is a test fixture, used that way.
+
+The EPUB and DOCX exporters, the preview, proofing and the marketing renderer
+stay in AOS-Write: nothing outside it uses them yet.
+
 ## Using it
 
 Depend on a commit, never a branch, and pin `authoros_core` at the commit

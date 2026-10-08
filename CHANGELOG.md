@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0
+
+- **The book exporters, moved in from AOS-Write's `lib/book/`** (October 8,
+  2026): `BookDocument` and `BookDocumentBuilder`, the Markdown and plain
+  text exporters, the layout engine and the PDF renderer, and what they need
+  (`BookFormat`, `BookFontAssets`, inline markup, EPUB settings, the
+  marketing kit and quote a `BookProject` carries). `scene_break_markers.dart`
+  comes too, at the top level. AOS Worldsmith exports a civilisation dossier
+  through them. The code is AOS-Write's, unchanged but for its imports:
+  manuscript types now come from `authoros_core/manuscript_model.dart`.
+- Depends on `pdf`, `xml` and `crypto`, at the ranges AOS-Write already uses.
+- The fonts stay the application's: `BookFontAssets.load()` reads
+  `assets/fonts/` from its bundle.
+- Additive: the widgets are unchanged.
+
 ## 0.2.0
 
 - **`FieldWithTruth`, moved in from AOS-Write's bible pages** (October 7,

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0
+
+- **The Loom, moved in from AOS-Write's `lib/knowledge_graph/`** (October 10,
+  2026): `GraphCanvas`, `GraphPalette`, the graph layouts, the family tree
+  and roster structures and their cards. AOS Worldsmith's Ancestry Room
+  draws a family tree through them.
+- Decoupled from the host on the way: `GraphPalette.of` (AOS-Write's Theme
+  Engine) became `GraphPalette.fromTheme(ThemeData)`, and the stored
+  `RecordAvatar` and local-path portraits became `portraits`, an
+  `ImageProvider` per record id that the host resolves. Otherwise the code is
+  AOS-Write's, unchanged but for its imports.
+- Needs `authoros_core` 0.13.0, which carries `story_graph.dart`.
+
 ## 0.3.0
 
 - **The book exporters, moved in from AOS-Write's `lib/book/`** (October 8,

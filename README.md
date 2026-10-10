@@ -71,6 +71,30 @@ face under `test/fonts/` is a test fixture, used that way.
 The EPUB and DOCX exporters, the preview, proofing and the marketing renderer
 stay in AOS-Write: nothing outside it uses them yet.
 
+### The Loom (`loom/`)
+
+Moved in from AOS-Write's `lib/knowledge_graph/` on October 10, 2026, so AOS
+Worldsmith's Ancestry Room draws a family tree with the same canvas and
+layouts the Story Graph does, not a second one (the owner's choice).
+
+- **`GraphCanvas`** (`loom/graph_canvas.dart`): a `StorySubgraph` drawn with
+  edges painted beneath and nodes as widgets above; chips, a family tree
+  when given a `FamilyStructure`, a roster when given a `GroupStructure`.
+- **`GraphPalette`**: the colours and text styles the canvas draws with.
+  `GraphPalette.fromTheme` builds one from any Material theme; AOS-Write
+  builds its own from the Theme Engine.
+- **`graph_layout.dart`**: the deterministic layouts (radial, layered,
+  family, roster).
+- **`family_tree.dart`** and **`family_canvas.dart`**: descent read from the
+  graph's `parentOf`, `guardianOf` and `partnerOf` edges, and the portrait
+  cards it is drawn with. **`group_roster.dart`** and **`group_canvas.dart`**:
+  the same for membership and rank.
+
+Pictures are the host's: the canvas takes `portraits`, an `ImageProvider`
+per record id, and never reads storage or the file system. The graph model
+itself (`StorySubgraph`, the modes) is the core's, in
+`authoros_core/story_graph.dart`.
+
 ## Using it
 
 Depend on a commit, never a branch, and pin `authoros_core` at the commit

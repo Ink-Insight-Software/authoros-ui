@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1
+
+- Pins `authoros_core` at 0.15.0 (`782b4d9`, the merge of
+  authoros-core#16), so hosts that need the Worldsmith Phase 6 to 10 types
+  can resolve one core. No code changed.
+
 ## 0.4.0
 
 - **The Loom, moved in from AOS-Write's `lib/knowledge_graph/`** (October 10,

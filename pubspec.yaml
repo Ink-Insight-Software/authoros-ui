@@ -3,9 +3,10 @@ description: >-
   Flutter widgets AuthorOS Write and the standalone applications share, over
   authoros_core: one renderer for record fields, so a field is drawn and
   edited the same way wherever a record is, and one set of book exporters
-  (Markdown, plain text, PDF), so a book or a dossier is set the same way.
+  (Markdown, plain text, PDF), so a book or a dossier is set the same way,
+  and the Loom's graph canvas, so a family tree is drawn the same way.
 publish_to: none
-version: 0.3.0
+version: 0.4.0
 
 environment:
   sdk: ">=3.6.0 <4.0.0"

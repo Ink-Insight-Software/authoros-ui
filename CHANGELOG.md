@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0
+
+- **The Word exporter, moved in from AOS-Write's `lib/book/`** (October 11,
+  2026): `BookDocxExporter` and `DocxFlavour` (`book/book_docx_exporter.dart`)
+  set a `BookDocument` as a `.docx`, in either flavour, the same bytes for
+  the same document and `modified` time. AOS Worldsmith offers a world bible
+  and a civilisation dossier as Word files through it. The code is
+  AOS-Write's, unchanged; AOS-Write's file becomes a re-export when it moves
+  its pin, as the other exporters' did.
+- Depends on `archive` (`^4.0.9`, the range `authoros_core` already uses).
+
 ## 0.4.3
 
 - Pins `authoros_core` at 0.17.0 (`65a0c48`, the merge of

@@ -50,6 +50,8 @@ the code lives.
   hand.
 - **`BookMarkdownExporter`** and **`BookTextExporter`**: a `BookDocument`
   to Markdown or plain text.
+- **`BookDocxExporter`**: a `BookDocument` to a Word file, as a submission
+  manuscript or a typeset copy (`DocxFlavour`). Moved in on October 11, 2026.
 - **`BookLayoutEngine`** and **`BookPdfRenderer`**: a `BookDocument` laid out
   in a `BookFormat` (`BookFormatPresets`), then rendered to the same PDF
   bytes every time.

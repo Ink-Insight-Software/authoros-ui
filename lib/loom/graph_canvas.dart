@@ -166,6 +166,15 @@ class GraphCanvas extends StatelessWidget {
   static const double nodeWidth = 132;
   static const double nodeHeight = 52;
 
+  /// Above this many nodes, only those on the canvas are built.
+  ///
+  /// A node off the canvas is clipped and never seen, but it was still a
+  /// widget: a whole world's family tree was 67,000 elements, and its
+  /// systems view 118,000, before a frame could draw. Below it every node is
+  /// built, so a small graph behaves exactly as it always has, a node
+  /// scrolled out of view included.
+  static const int cullAbove = 200;
+
   bool get _drawsFamily => family?.isEmpty == false;
   bool get _drawsRoster => group?.isEmpty == false;
 
@@ -188,6 +197,25 @@ class GraphCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (subgraph.nodes.length <= cullAbove) return _canvas(context, null);
+    return LayoutBuilder(
+      builder: (context, constraints) => _canvas(
+        context,
+        constraints.hasBoundedWidth && constraints.hasBoundedHeight
+            ? Offset.zero & constraints.biggest
+            : null,
+      ),
+    );
+  }
+
+  /// Whether a node centred at [canvas] shows any of itself in [visible].
+  bool _onCanvas(String id, Offset canvas, Rect? visible) {
+    if (visible == null) return true;
+    final half = Offset(_widthFor(id) / 2, _heightFor(id) / 2);
+    return visible.overlaps(Rect.fromPoints(canvas - half, canvas + half));
+  }
+
+  Widget _canvas(BuildContext context, Rect? visible) {
     return ClipRect(
       child: Stack(
         children: [
@@ -247,8 +275,9 @@ class GraphCanvas extends StatelessWidget {
             ),
           ),
           for (final node in subgraph.nodes)
-            if (positions[node.id] != null)
-              _positionedNode(context, node, positions[node.id]!),
+            if (positions[node.id] case final model?
+                when _onCanvas(node.id, projection.toCanvas(model), visible))
+              _positionedNode(context, node, model),
           if (subgraph.isEmpty)
             Center(
               child: Padding(

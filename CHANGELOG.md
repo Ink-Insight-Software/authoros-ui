@@ -10,6 +10,12 @@
   AOS-Write's, unchanged; AOS-Write's file becomes a re-export when it moves
   its pin, as the other exporters' did.
 - Depends on `archive` (`^4.0.9`, the range `authoros_core` already uses).
+- **`GraphCanvas` builds only the nodes on its canvas** once a graph has
+  more than `GraphCanvas.cullAbove` (200) nodes. Off the canvas a node was
+  clipped and never seen, but still built: on AOS Worldsmith's large-world
+  fixture the systems view was 118,000 elements and the family tree 67,000
+  (now 4,500 and 26,000). A graph of 200 or fewer builds every node, as
+  before.
 
 ## 0.4.3
 

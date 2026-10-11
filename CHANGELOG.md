@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+- Pins `authoros_core` at 0.16.0 (`9372516`, the merge of
+  authoros-core#17), which moves Language Forge's model into the core and
+  carries extension documents in the archive. No code changed.
+
 ## 0.4.1
 
 - Pins `authoros_core` at 0.15.0 (`782b4d9`, the merge of

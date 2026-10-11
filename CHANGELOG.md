@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0
+
+- **The Word exporter, moved in from AOS-Write's `lib/book/`** (October 11,
+  2026): `BookDocxExporter` and `DocxFlavour` (`book/book_docx_exporter.dart`)
+  set a `BookDocument` as a `.docx`, in either flavour, the same bytes for
+  the same document and `modified` time. AOS Worldsmith offers a world bible
+  and a civilisation dossier as Word files through it. The code is
+  AOS-Write's, unchanged; AOS-Write's file becomes a re-export when it moves
+  its pin, as the other exporters' did.
+- Depends on `archive` (`^4.0.9`, the range `authoros_core` already uses).
+- **`GraphCanvas` builds only the nodes on its canvas** once a graph has
+  more than `GraphCanvas.cullAbove` (200) nodes. Off the canvas a node was
+  clipped and never seen, but still built: on AOS Worldsmith's large-world
+  fixture the systems view was 118,000 elements and the family tree 67,000
+  (now 4,500 and 26,000). A graph of 200 or fewer builds every node, as
+  before.
+
 ## 0.4.3
 
 - Pins `authoros_core` at 0.17.0 (`65a0c48`, the merge of

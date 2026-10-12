@@ -114,6 +114,9 @@ class GraphCanvas extends StatelessWidget {
     this.portraits = const {},
     this.onPickPhoto,
     this.onRemovePhoto,
+    this.familyNodeStyle = FamilyNodeStyle.portrait,
+    this.ringColours = const {},
+    this.captions = const {},
   });
 
   final StorySubgraph subgraph;
@@ -163,6 +166,19 @@ class GraphCanvas extends StatelessWidget {
   /// Clear a person's photo.
   final ValueChanged<StoryGraphNode>? onRemovePhoto;
 
+  /// Family mode: how each person is drawn. [FamilyNodeStyle.compact] is
+  /// for a host showing more people than it can show faces.
+  final FamilyNodeStyle familyNodeStyle;
+
+  /// Family mode: a colour for particular people, keyed by record id, in
+  /// place of their descent line's: a House's, when the host colours by
+  /// House. Their ring and the lines drawn from them take it.
+  final Map<String, Color> ringColours;
+
+  /// Family mode: the line under a person's name, keyed by record id, in
+  /// place of their lifespan (a portrait card's caption).
+  final Map<String, String> captions;
+
   static const double nodeWidth = 132;
   static const double nodeHeight = 52;
 
@@ -176,6 +192,10 @@ class GraphCanvas extends StatelessWidget {
   static const int cullAbove = 200;
 
   bool get _drawsFamily => family?.isEmpty == false;
+
+  /// The family drawn as painted marks, with no widget per person.
+  bool get _drawsMarks =>
+      _drawsFamily && familyNodeStyle == FamilyNodeStyle.compact;
   bool get _drawsRoster => group?.isEmpty == false;
 
   /// True where the node draws as a group card rather than a person's.
@@ -197,7 +217,9 @@ class GraphCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (subgraph.nodes.length <= cullAbove) return _canvas(context, null);
+    if (_drawsMarks || subgraph.nodes.length <= cullAbove) {
+      return _canvas(context, null);
+    }
     return LayoutBuilder(
       builder: (context, constraints) => _canvas(
         context,
@@ -263,6 +285,7 @@ class GraphCanvas extends StatelessWidget {
                           projection: projection,
                           palette: palette,
                           lineageColours: palette.lineages,
+                          ringColours: ringColours,
                           selectedId: selectedId,
                         )
                       : _GraphEdgePainter(
@@ -274,10 +297,13 @@ class GraphCanvas extends StatelessWidget {
                         ),
             ),
           ),
-          for (final node in subgraph.nodes)
-            if (positions[node.id] case final model?
-                when _onCanvas(node.id, projection.toCanvas(model), visible))
-              _positionedNode(context, node, model),
+          if (_drawsMarks)
+            Positioned.fill(child: _marks())
+          else
+            for (final node in subgraph.nodes)
+              if (positions[node.id] case final model?
+                  when _onCanvas(node.id, projection.toCanvas(model), visible))
+                _positionedNode(context, node, model),
           if (subgraph.isEmpty)
             Center(
               child: Padding(
@@ -332,6 +358,7 @@ class GraphCanvas extends StatelessWidget {
           isRoot: node.id == rootId,
           isSelected: node.id == selectedId,
           portrait: portraits[node.id],
+          caption: captions[node.id],
           onTap: onNodeTap == null ? null : () => onNodeTap!(node),
           onOpen: onNodeOpen == null ? null : () => onNodeOpen!(node),
           onPickPhoto: onPickPhoto == null ? null : () => onPickPhoto!(node),
@@ -371,6 +398,56 @@ class GraphCanvas extends StatelessWidget {
       height: _heightFor(node.id),
       child: child,
     );
+  }
+
+  /// The painted marks, on top, answering for the whole canvas: a tap on a
+  /// mark is that person's, anywhere else the background's, and a drag pans.
+  Widget _marks() {
+    // Where a double tap went down, for when it completes.
+    Offset? doubleTapAt;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      dragStartBehavior: DragStartBehavior.down,
+      onTapUp: _tapMark,
+      onDoubleTapDown: (details) => doubleTapAt = details.localPosition,
+      onDoubleTap: onNodeOpen == null ? null : () => _openMark(doubleTapAt),
+      onPanUpdate: onPanUpdate == null
+          ? null
+          : (details) => onPanUpdate!(details.delta),
+      child: CustomPaint(
+        key: const Key('family-marks'),
+        painter: FamilyMarkPainter(
+          subgraph: subgraph,
+          positions: positions,
+          projection: projection,
+          palette: palette,
+          colourOf: _lineageColour,
+          selectedId: selectedId,
+          onTap: onNodeTap,
+        ),
+      ),
+    );
+  }
+
+  StoryGraphNode? _markAt(Offset at) => FamilyMarkPainter.personAt(
+        at,
+        subgraph: subgraph,
+        positions: positions,
+        projection: projection,
+      );
+
+  void _tapMark(TapUpDetails details) {
+    final node = _markAt(details.localPosition);
+    if (node == null) {
+      onBackgroundTap?.call();
+    } else {
+      onNodeTap?.call(node);
+    }
+  }
+
+  void _openMark(Offset? at) {
+    final node = at == null ? null : _markAt(at);
+    if (node != null) onNodeOpen?.call(node);
   }
 
   /// The group's own card, or one of its people.
@@ -413,6 +490,7 @@ class GraphCanvas extends StatelessWidget {
   }
 
   Color _lineageColour(String nodeId) {
+    if (ringColours[nodeId] case final colour?) return colour;
     final ramp = palette.lineages;
     if (ramp.isEmpty || family == null) return palette.outline;
     return ramp[family!.lineageIndexOf(nodeId) % ramp.length];

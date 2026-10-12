@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.6.0
+
+- **A host chooses how a family is drawn** (October 12, 2026, for AOS
+  Worldsmith's styled family trees). Three new `GraphCanvas` parameters,
+  each read in the Family mode only, each defaulting to what was drawn
+  before:
+  - `familyNodeStyle`: `FamilyNodeStyle.portrait` draws a `FamilyNodeCard`
+    per person, as before; `FamilyNodeStyle.compact` paints every person as
+    a small ring and a name (`FamilyMarkPainter`), in a card's footprint so
+    every line still meets it, with no widget per person. A tap, a double
+    tap and a drag still work, found by `FamilyMarkPainter.personAt`, and
+    each mark gives a screen reader the name and lifespan a card would. On
+    AOS Worldsmith's large-world fixture the family tree, fitted to the
+    screen, went from 26,000 elements to under 5,000.
+  - `ringColours`: a colour for particular people, in place of their
+    descent line's, on their ring and on the lines drawn from them
+    (`FamilyEdgePainter.ringColours`). A host colours by House with it.
+  - `captions`: the line under a person's name, in place of their lifespan,
+    passed to `FamilyNodeCard.caption`, which the roster already used.
+
 ## 0.5.0
 
 - **The Word exporter, moved in from AOS-Write's `lib/book/`** (October 11,

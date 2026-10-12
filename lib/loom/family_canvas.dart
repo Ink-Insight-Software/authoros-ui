@@ -15,6 +15,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import 'package:authoros_core/story_graph.dart';
 import 'family_tree.dart';
@@ -231,6 +232,163 @@ class FamilyNodeCard extends StatelessWidget {
   }
 }
 
+/// How a person is drawn on a family tree.
+enum FamilyNodeStyle {
+  /// [FamilyNodeCard]: portrait, name and lifespan, with a tooltip and the
+  /// photo control, each person a widget. What a reader looks at.
+  portrait,
+
+  /// [FamilyMarkPainter]: a small ring in the line's colour and the name,
+  /// painted. What a reader scans: hundreds of people at once, for the cost
+  /// of one widget rather than one each.
+  compact,
+}
+
+/// The ring a compact mark draws, centred where a card's portrait is so the
+/// same lines meet it.
+const double kFamilyMarkDiameter = 26;
+
+/// Every person on a family tree drawn small: a ring and a name, painted.
+///
+/// For a tree too large to read face by face. A portrait card is some thirty
+/// elements, so six hundred people on screen were eighteen thousand before a
+/// frame could draw; painted, they are none. Each mark keeps a card's
+/// geometry (the ring sits where the portrait would, so every bond and
+/// descent line lands on it unchanged), and each still answers a screen
+/// reader with the name and lifespan a card would say, through
+/// [semanticsBuilder]. Taps are found with [personAt].
+class FamilyMarkPainter extends CustomPainter {
+  const FamilyMarkPainter({
+    required this.subgraph,
+    required this.positions,
+    required this.projection,
+    required this.palette,
+    required this.colourOf,
+    this.selectedId,
+    this.onTap,
+  });
+
+  final StorySubgraph subgraph;
+  final Map<String, Offset> positions;
+  final GraphProjection projection;
+  final GraphPalette palette;
+
+  /// The colour of a person's ring: their line's, or one the host chose.
+  final Color Function(String id) colourOf;
+  final String? selectedId;
+
+  /// What a screen reader's tap on a person does.
+  final ValueChanged<StoryGraphNode>? onTap;
+
+  /// The card-sized box a person occupies on the canvas.
+  static Rect footprint(Offset centre) => Rect.fromCenter(
+        center: centre,
+        width: kFamilyNodeWidth,
+        height: kFamilyNodeHeight,
+      );
+
+  /// The person whose footprint holds the canvas point [at], nearest first,
+  /// or null on empty ground.
+  static StoryGraphNode? personAt(
+    Offset at, {
+    required StorySubgraph subgraph,
+    required Map<String, Offset> positions,
+    required GraphProjection projection,
+  }) {
+    StoryGraphNode? best;
+    var distance = double.infinity;
+    for (final node in subgraph.nodes) {
+      final model = positions[node.id];
+      if (model == null) continue;
+      final centre = projection.toCanvas(model);
+      if (!footprint(centre).contains(at)) continue;
+      final d = (centre - at).distanceSquared;
+      if (d < distance) {
+        distance = d;
+        best = node;
+      }
+    }
+    return best;
+  }
+
+  Iterable<(StoryGraphNode, Offset)> _visible(Size size) sync* {
+    final screen = (Offset.zero & size).inflate(kFamilyNodeWidth);
+    for (final node in subgraph.nodes) {
+      final model = positions[node.id];
+      if (model == null) continue;
+      final centre = projection.toCanvas(model);
+      if (screen.contains(centre)) yield (node, centre);
+    }
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final (node, centre) in _visible(size)) {
+      final ring = centre.translate(0, -kFamilyAvatarCentreOffset);
+      final colour = colourOf(node.id);
+      final selected = node.id == selectedId;
+      canvas.drawCircle(
+        ring,
+        kFamilyMarkDiameter / 2,
+        Paint()..color = colour.withValues(alpha: selected ? 0.9 : 0.35),
+      );
+      canvas.drawCircle(
+        ring,
+        kFamilyMarkDiameter / 2,
+        Paint()
+          ..color = selected ? palette.primary : colour
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = selected ? 3 : 2,
+      );
+      final name = TextPainter(
+        text: TextSpan(
+          text: node.title,
+          style: palette.label.copyWith(color: palette.onSurface),
+        ),
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        ellipsis: '…',
+      )..layout(maxWidth: kFamilyNodeWidth);
+      name.paint(
+        canvas,
+        ring.translate(-name.width / 2, kFamilyMarkDiameter / 2 + 4),
+      );
+      name.dispose();
+    }
+  }
+
+  @override
+  SemanticsBuilderCallback get semanticsBuilder => (size) => [
+        for (final (node, centre) in _visible(size))
+          CustomPainterSemantics(
+            key: ValueKey('family-mark-${node.id}'),
+            rect: footprint(centre),
+            properties: SemanticsProperties(
+              button: true,
+              selected: node.id == selectedId,
+              label: familyLifeDates(node).label.isEmpty
+                  ? node.title
+                  : '${node.title}, ${familyLifeDates(node).label}',
+              textDirection: TextDirection.ltr,
+              onTap: onTap == null ? null : () => onTap!(node),
+            ),
+          ),
+      ];
+
+  @override
+  bool shouldRepaint(FamilyMarkPainter old) =>
+      old.subgraph != subgraph ||
+      old.positions != positions ||
+      old.projection.pan != projection.pan ||
+      old.projection.zoom != projection.zoom ||
+      old.selectedId != selectedId ||
+      old.colourOf != colourOf;
+
+  @override
+  bool shouldRebuildSemantics(FamilyMarkPainter old) => shouldRepaint(old);
+}
+
 /// Couple bonds and descent lines, drawn square.
 ///
 /// Straight point-to-point lines are what make a general graph legible and what
@@ -245,6 +403,7 @@ class FamilyEdgePainter extends CustomPainter {
     required this.projection,
     required this.palette,
     required this.lineageColours,
+    this.ringColours = const {},
     this.selectedId,
   });
 
@@ -256,11 +415,17 @@ class FamilyEdgePainter extends CustomPainter {
 
   /// The categorical ramp, indexed by lineage.
   final List<Color> lineageColours;
+
+  /// Colours the host chose for particular people (a House's, say), in place
+  /// of their line's. A line takes the colour of the person it starts from.
+  final Map<String, Color> ringColours;
   final String? selectedId;
 
-  Color _lineageColour(String id) => lineageColours.isEmpty
-      ? palette.outline
-      : lineageColours[family.lineageIndexOf(id) % lineageColours.length];
+  Color _lineageColour(String id) =>
+      ringColours[id] ??
+      (lineageColours.isEmpty
+          ? palette.outline
+          : lineageColours[family.lineageIndexOf(id) % lineageColours.length]);
 
   Offset? _canvasOf(String id) {
     final model = positions[id];
@@ -458,5 +623,6 @@ class FamilyEdgePainter extends CustomPainter {
       old.projection.pan != projection.pan ||
       old.projection.zoom != projection.zoom ||
       old.selectedId != selectedId ||
-      old.lineageColours != lineageColours;
+      old.lineageColours != lineageColours ||
+      old.ringColours != ringColours;
 }

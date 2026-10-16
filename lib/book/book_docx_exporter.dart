@@ -23,7 +23,9 @@
 /// Moved here from AOS-Write's `lib/book/` on October 11, 2026, beside the
 /// Markdown, text and PDF exporters it came from, so AOS Worldsmith sets a
 /// Word file through this one rather than a second. The code is AOS-Write's,
-/// unchanged.
+/// unchanged but for one thing: since 0.6.1 the document part is written
+/// straight to text (`_XmlWriter`) rather than built as a tree first, which
+/// is what made a whole world's bible slow to set. The bytes are the same.
 library;
 
 import 'dart:typed_data';
@@ -608,8 +610,9 @@ class BookDocxExporter {
   // --- the document -------------------------------------------------------
 
   String _document(BookDocument document, _Metrics metrics) {
-    final builder = XmlBuilder();
-    builder.declaration(encoding: 'UTF-8', attributes: {'standalone': 'yes'});
+    // The body is most of the file and nearly all of the time, so it is
+    // written straight to text rather than built as a tree first.
+    final builder = _XmlWriter()..declaration();
     builder.element('w:document',
         namespaceUris: {'w': _w, 'r': _r}, nest: () {
       builder.element('w:body', nest: () {
@@ -648,12 +651,12 @@ class BookDocxExporter {
         _sectionProperties(builder, metrics);
       });
     });
-    return builder.buildDocument().toXmlString();
+    return builder.toString();
   }
 
   /// A chapter: its opener, then its scenes separated by breaks.
   void _chapter(
-    XmlBuilder builder,
+    _XmlWriter builder,
     BookChapterContent chapter,
     _Metrics metrics, {
     required bool atStart,
@@ -701,7 +704,7 @@ class BookDocxExporter {
 
   /// One front- or back-matter section.
   void _matter(
-    XmlBuilder builder,
+    _XmlWriter builder,
     BookMatterPage page, {
     required bool atStart,
     required BookInlineMarkup markup,
@@ -753,7 +756,7 @@ class BookDocxExporter {
   /// placeholder text has to sit between `separate` and `end`: a reader that
   /// does not evaluate fields then shows that line instead of a blank page,
   /// and Word replaces it as soon as the field is updated.
-  void _tableOfContents(XmlBuilder builder) {
+  void _tableOfContents(_XmlWriter builder) {
     builder.element('w:p', nest: () {
       builder.element('w:pPr', nest: () {
         builder.element('w:pStyle', attributes: {'w:val': 'FrontMatter'});
@@ -793,7 +796,7 @@ class BookDocxExporter {
   /// paragraph of the document must not break, or Word opens on a blank page,
   /// and a chapter number carries the break for the title that follows it.
   void _paragraph(
-    XmlBuilder builder,
+    _XmlWriter builder,
     String style,
     String text, {
     bool? pageBreakBefore,
@@ -848,7 +851,7 @@ class BookDocxExporter {
     });
   }
 
-  void _sectionProperties(XmlBuilder builder, _Metrics metrics) {
+  void _sectionProperties(_XmlWriter builder, _Metrics metrics) {
     builder.element('w:sectPr', nest: () {
       // CT_SectPr order puts references before the page description.
       if (metrics.runningHeader) {
@@ -911,4 +914,100 @@ class BookDocxExporter {
         '${two(utc.day)}T${two(utc.hour)}:${two(utc.minute)}:'
         '${two(utc.second)}Z';
   }
+}
+
+/// Writes XML straight to text, as `XmlBuilder` followed by `toXmlString()`
+/// would, character for character, without building the tree between.
+///
+/// A whole world bible's body is some six million characters, and building
+/// it as a tree first took about nine tenths of the time a Word export took
+/// (October 16, 2026). Only `element` is offered, with `XmlBuilder`'s
+/// meaning: an element given nothing to nest closes itself, one given text
+/// or children does not, and the text and attribute values go through the
+/// same escaping (`defaultEntityMapping`) that `toXmlString()` uses. A test
+/// holds this to the bytes the tree gave.
+class _XmlWriter {
+  final StringBuffer _out = StringBuffer();
+
+  /// Whether the last element opened is still waiting for its `>`: it
+  /// closes itself unless something is written inside it.
+  bool _open = false;
+
+  void declaration() => _out.write(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+      );
+
+  void element(
+    String name, {
+    Map<String?, String> namespaceUris = const {},
+    Map<String, String> attributes = const {},
+    Object? nest,
+  }) {
+    _enter();
+    _out
+      ..write('<')
+      ..write(name);
+    namespaceUris.forEach((prefix, uri) {
+      _out.write(prefix == null ? ' xmlns=' : ' xmlns:$prefix=');
+      _out.write(_quoted(uri));
+    });
+    attributes.forEach((key, value) {
+      _out
+        ..write(' ')
+        ..write(key)
+        ..write('=')
+        ..write(_quoted(value));
+    });
+    _open = true;
+    switch (nest) {
+      case null:
+        break;
+      case final String text:
+        _enter();
+        _out.write(_plain(text) ? text : defaultEntityMapping.encodeText(text));
+      case final void Function() children:
+        children();
+      default:
+        throw ArgumentError.value(nest, 'nest');
+    }
+    if (_open) {
+      _out.write('/>');
+      _open = false;
+    } else {
+      _out
+        ..write('</')
+        ..write(name)
+        ..write('>');
+    }
+  }
+
+  /// Finishes the open tag of the element something is being written into.
+  void _enter() {
+    if (_open) {
+      _out.write('>');
+      _open = false;
+    }
+  }
+
+  /// Whether [text] holds nothing `encodeText` would change: no `&`, `<`
+  /// or `]` (for `]]>`), and none of the control characters it writes as
+  /// numbers. Most prose holds none, and looking is cheaper than the
+  /// pattern.
+  static bool _plain(String text) {
+    for (var i = 0; i < text.length; i++) {
+      final c = text.codeUnitAt(i);
+      if (c == 0x26 || c == 0x3c || c == 0x5d) return false;
+      if (c < 0x20 && c != 0x09 && c != 0x0a && c != 0x0d && c != 0) {
+        return false;
+      }
+      if (c >= 0x7f && c <= 0x9f && c != 0x85) return false;
+    }
+    return true;
+  }
+
+  static String _quoted(String value) => defaultEntityMapping
+      .encodeAttributeValueWithQuotes(value, XmlAttributeType.DOUBLE_QUOTE);
+
+  @override
+  String toString() => _out.toString();
 }

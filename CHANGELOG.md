@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.6.1
+
+- **A large Word file is set about four times faster, with the same bytes**
+  (October 16, 2026, for AOS Worldsmith's whole-world bible).
+  `BookDocxExporter` now writes the document part straight to text instead
+  of building it as an `XmlBuilder` tree and then serialising it; the other
+  parts are small and still use `XmlBuilder`. The escaping is the `xml`
+  package's own (`defaultEntityMapping`), with a check that skips it for
+  text it would not change. `BookSceneContent.wordCount` counts with one
+  pattern instead of making one, and a list of words, per paragraph. On
+  AOS Worldsmith's large-world fixture (a 6 MB document part) the export
+  went from about 0.95 s to about 0.25 s once warm (1.3 to 1.7 s to about
+  0.4 s on a first run), in a debug test. The bytes are unchanged:
+  `test/book_docx_identity_test.dart` holds four documents, both flavours,
+  every kind of matter and every character the escaping treats specially,
+  to 0.6.0's SHA-256, and Worldsmith holds its large world to 0.6.0's bytes.
+
 ## 0.6.0
 
 - **A host chooses how a family is drawn** (October 12, 2026, for AOS

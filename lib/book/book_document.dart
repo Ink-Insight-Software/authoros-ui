@@ -819,16 +819,16 @@ class BookSceneContent {
 
   bool get isEmpty => paragraphs.isEmpty;
 
+  // The runs of non-space in the trimmed text, which is what splitting it
+  // on runs of space and dropping the empty pieces counted, without making
+  // a pattern and a list of words for every paragraph.
   int get wordCount => paragraphs.fold<int>(
         0,
         (sum, paragraph) =>
-            sum +
-            paragraph.text
-                .trim()
-                .split(RegExp(r'\s+'))
-                .where((w) => w.isNotEmpty)
-                .length,
+            sum + _word.allMatches(paragraph.text.trim()).length,
       );
+
+  static final _word = RegExp(r'\S+');
 }
 
 /// One chapter of the body.

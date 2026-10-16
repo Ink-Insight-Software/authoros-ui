@@ -97,6 +97,29 @@ per record id, and never reads storage or the file system. The graph model
 itself (`StorySubgraph`, the modes) is the core's, in
 `authoros_core/story_graph.dart`.
 
+### The Linguist's Study's panels (`language_forge/`)
+
+Moved in from AOS-Write's `lib/expansions/language_forge/` on October 16,
+2026, so AOS Worldsmith's Linguist's Study shows the panels AuthorOS Write's
+does, over the same models, not a second set. The models are the core's
+(`authoros_core/language_forge/`); these are only their surfaces.
+
+- **`StudyContext`** (`language_forge/study_panels.dart`): what every panel is
+  given, from its host: the Study's snapshot, the working layer, the chosen
+  language, whether it may be changed, `commit` (the one way a panel saves
+  the layer), `openRecord`, and optionally `saveEntry` (a Lexicon Entry made
+  through the host's own create path) and `recordHome` (where the host makes
+  a record, as a sentence names it; *the Codex* by default).
+- **The panels**: `SoundPanel`, `WordForgePanel`, `DictionaryPanel`,
+  `TranslationPanel` and `ScriptPanel` (`study_panels.dart`), `GrammarPanel`
+  (`grammar_panel.dart`), `SoundChangePanel` and `FamilyPanel`
+  (`evolution_panels.dart`), `ProfilePanel` and `NamingPanel`
+  (`profile_and_naming_panels.dart`).
+
+Where the layer is kept, the gate on changing it, and the Study's frame
+(its language chooser and its list of panels) stay the host's. So does
+Linguistic Continuity's panel, which reads AuthorOS Write's manuscript.
+
 ## Using it
 
 Depend on a commit, never a branch, and pin `authoros_core` at the commit

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.7.0
+
+- **The Linguist's Study's panels** (October 16, 2026, for AOS Worldsmith's
+  Linguist's Study). `lib/language_forge/`: `study_panels.dart`,
+  `grammar_panel.dart`, `evolution_panels.dart` and
+  `profile_and_naming_panels.dart`, moved from AOS-Write's
+  `lib/expansions/language_forge/`, where each becomes a one-line export.
+  They depended only on the core and Flutter. Changed on the way:
+  - imports name the core's `language_forge/` files directly;
+  - `StudyContext.recordHome`, *the Codex* by default, names where a host
+    makes a record in the panels' notices, so Worldsmith's do not send an
+    author to a Codex it does not have;
+  - the Grammar panel's *Open in the Codex* reads *Open the record*, as the
+    Profile's already did, its empty notice drops *under Culture*, and the
+    Family panel's subtitle says *the records' links* for *the Codex's
+    links*. Every other string, key and behaviour is as it was.
+  `test/language_forge/study_panels_test.dart` mounts each panel on its own
+  over an in-memory host (eight tests).
+
 ## 0.6.1
 
 - **A large Word file is set about four times faster, with the same bytes**

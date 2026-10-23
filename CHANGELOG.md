@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.2
+
+- **Pins authoros-core 0.22.0** (October 23, 2026): `institution` as a
+  faction child with `charter`, `jurisdiction` and `answersTo`; the
+  time-bounded edges' start and end keys declared once
+  (`ConnectionTypeDefinition.spanKeyPairs`), with `LinkSpanText` and an
+  optional `asOf` on `ConsequenceTraversal.traverse`; and `world.currentEra`
+  on the registered `world`. Nothing here changes: the core's change is
+  additive, and pub allows an application one core ref, so this package
+  moves with it.
+
 ## 0.7.1
 
 - **Pins authoros-core 0.21.0** (October 21, 2026): the `claims`

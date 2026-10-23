@@ -7,7 +7,7 @@ description: >-
   the Loom's graph canvas, so a family tree is drawn the same way, and the
   Linguist's Study's panels, so a language is built the same way.
 publish_to: none
-version: 0.7.1
+version: 0.7.2
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -22,7 +22,7 @@ dependencies:
   authoros_core:
     git:
       url: https://github.com/Ink-Insight-Software/authoros-core.git
-      ref: e5d5d81d03f72afcb851ca5f5dd47f9e033c2a27
+      ref: 7e18f7fd26d74f0dcd5d35177a8710b632d7bf49
   crypto: ^3.0.7
   flutter:
     sdk: flutter

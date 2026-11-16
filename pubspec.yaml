@@ -32,3 +32,15 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+# For this package's own checks only: pub ignores a dependency's overrides, so
+# no application is held to this. `book_docx_identity_test.dart` compares an
+# exported Word file byte for byte, and a newer `archive` writes the zip
+# differently (4.7.1 does; 4.0.9, which AuthorOS Write locks, does not). With
+# no lockfile here the range above floats, so the check is held to the version
+# that ships.
+dependency_overrides:
+  archive: 4.0.9
+  # `image` 4.10 and later call an `archive` method 4.0.9 does not have, so it
+  # is held to the version AuthorOS Write locks as well.
+  image: 4.9.1

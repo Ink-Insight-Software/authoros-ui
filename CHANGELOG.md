@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.3
+
+- **Pins authoros-core 0.23.0** (November 16, 2026): AuthorOS Write 3.0's
+  three bundles (`aosWorldbuilding`, `aosRevisePublish`, `aosStudioPlus`),
+  `PaidProduct.includes` and `Entitlements.opens`. Additive, and nothing in
+  this package reads any of it; only the pin moves.
+
 ## 0.7.2
 
 - **Pins authoros-core 0.22.0** (October 23, 2026): `institution` as a

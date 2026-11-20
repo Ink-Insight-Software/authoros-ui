@@ -7,7 +7,7 @@ description: >-
   the Loom's graph canvas, so a family tree is drawn the same way, and the
   Linguist's Study's panels, so a language is built the same way.
 publish_to: none
-version: 0.7.3
+version: 0.8.0
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -27,6 +27,9 @@ dependencies:
   flutter:
     sdk: flutter
   pdf: ^3.13.0
+  # The PDF renderer's matrix, for mirroring a corner piece. Flutter and pdf
+  # already bring it; named because this package now imports it.
+  vector_math: ^2.1.4
   xml: ^7.0.1
 
 dev_dependencies:

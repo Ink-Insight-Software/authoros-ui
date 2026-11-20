@@ -543,6 +543,40 @@ class BookPlateArt {
   final double aspect;
 }
 
+/// Which corners of a chapter's opening page wear the corner art.
+///
+/// The format says *where*; the picture is [BookPageArt]'s. The art is drawn
+/// for the top-left corner and mirrored into the others.
+enum CornerArtPlacement {
+  /// The two top corners.
+  topTwo,
+
+  /// All four corners.
+  allFour,
+}
+
+/// The art a book's pages wear beyond the scene-break ornament: a corner
+/// piece on each chapter's opening page, and a tailpiece under a chapter's
+/// last line.
+///
+/// Bytes and aspect, kept off [BookFormat] for [BookOrnamentArt]'s reason:
+/// the format is settings, and settings are a small JSON blob. Either may be
+/// absent; a book with neither is laid out exactly as it was before this
+/// existed.
+class BookPageArt {
+  const BookPageArt({this.corner, this.tailpiece});
+
+  /// Drawn for the top-left corner. Its `widthPt` is not read: the engine
+  /// sizes a corner from the text block.
+  final BookOrnamentArt? corner;
+
+  /// Set centred under the chapter's last line where the page has room, and
+  /// left out where it does not. Its `widthPt` is not read either.
+  final BookOrnamentArt? tailpiece;
+
+  bool get isEmpty => corner == null && tailpiece == null;
+}
+
 /// Chapter opener and scene break design.
 class ChapterStyle {
   const ChapterStyle({
@@ -560,6 +594,7 @@ class ChapterStyle {
     this.sceneBreak = SceneBreakStyle.blankLine,
     this.sceneBreakGlyph = '* * *',
     this.ornament = BookOrnamentId.none,
+    this.cornerArt = CornerArtPlacement.topTwo,
   });
 
   final ChapterStartRule startRule;
@@ -585,6 +620,10 @@ class ChapterStyle {
   final String sceneBreakGlyph;
   final BookOrnamentId ornament;
 
+  /// Which corners of the opening page wear the corner art, when the book
+  /// has any ([BookPageArt.corner]).
+  final CornerArtPlacement cornerArt;
+
   ChapterStyle copyWith({
     ChapterStartRule? startRule,
     double? sinkFraction,
@@ -600,6 +639,7 @@ class ChapterStyle {
     SceneBreakStyle? sceneBreak,
     String? sceneBreakGlyph,
     BookOrnamentId? ornament,
+    CornerArtPlacement? cornerArt,
   }) =>
       ChapterStyle(
         startRule: startRule ?? this.startRule,
@@ -616,6 +656,7 @@ class ChapterStyle {
         sceneBreak: sceneBreak ?? this.sceneBreak,
         sceneBreakGlyph: sceneBreakGlyph ?? this.sceneBreakGlyph,
         ornament: ornament ?? this.ornament,
+        cornerArt: cornerArt ?? this.cornerArt,
       );
 
   Map<String, Object?> toJson() => {
@@ -633,6 +674,7 @@ class ChapterStyle {
         'sceneBreak': sceneBreak.name,
         'sceneBreakGlyph': sceneBreakGlyph,
         'ornament': ornament.name,
+        'cornerArt': cornerArt.name,
       };
 
   factory ChapterStyle.fromJson(Map<String, dynamic> json) => ChapterStyle(
@@ -655,6 +697,9 @@ class ChapterStyle {
         sceneBreakGlyph: (json['sceneBreakGlyph'] as String?) ?? '* * *',
         ornament: _enumByName(
             BookOrnamentId.values, json['ornament'], BookOrnamentId.none),
+        // Absent in every format saved before page art existed.
+        cornerArt: _enumByName(CornerArtPlacement.values, json['cornerArt'],
+            CornerArtPlacement.topTwo),
       );
 }
 

@@ -172,6 +172,56 @@ class LayoutOrnament extends LayoutElement {
   final double? heightPt;
 }
 
+/// Where a piece of page art sits.
+enum BookPageArtSlot {
+  cornerTopLeft,
+  cornerTopRight,
+  cornerBottomLeft,
+  cornerBottomRight,
+  tailpiece;
+
+  bool get isCorner => this != BookPageArtSlot.tailpiece;
+
+  /// The corner art is drawn for the top-left; the right-hand corners are
+  /// its mirror image left to right.
+  bool get flipX =>
+      this == BookPageArtSlot.cornerTopRight ||
+      this == BookPageArtSlot.cornerBottomRight;
+
+  /// And the bottom corners are its mirror image top to bottom.
+  bool get flipY =>
+      this == BookPageArtSlot.cornerBottomLeft ||
+      this == BookPageArtSlot.cornerBottomRight;
+}
+
+/// A piece of page art: a corner of a chapter's opening page, or the
+/// tailpiece under a chapter's last line.
+///
+/// Like [LayoutOrnament] the rectangle is the engine's, and a renderer draws
+/// into it without measuring again. A corner's rectangle reaches a little way
+/// out of the text block into the margins, so its [x] or [y] may be negative.
+/// [slot] says which way the picture is mirrored, and tells a surface that
+/// cannot use raw bytes — the preview — which decoded picture to draw.
+class LayoutPageArt extends LayoutElement {
+  const LayoutPageArt({
+    required this.slot,
+    required this.imageBytes,
+    required this.x,
+    required this.y,
+    required this.widthPt,
+    required this.heightPt,
+  });
+
+  final BookPageArtSlot slot;
+  final Uint8List imageBytes;
+  @override
+  final double x;
+  @override
+  final double y;
+  final double widthPt;
+  final double heightPt;
+}
+
 /// A full-page image, already fitted to the page it sits on.
 ///
 /// Like [LayoutOrnament], the rectangle is the engine's and no renderer
@@ -400,7 +450,12 @@ class BookLayoutEngine {
     this.metrics, {
     this.ornamentArt,
     this.plateArt = const {},
+    this.pageArt = const BookPageArt(),
   });
+
+  /// The corner piece and the tailpiece, when the book has them. Off the
+  /// format for [ornamentArt]'s reason.
+  final BookPageArt pageArt;
 
   /// The artwork for [BookOrnamentId.image], when the book uses one.
   ///
@@ -642,6 +697,7 @@ class BookLayoutEngine {
           ));
 
           _composeChapterOpener(page, chapter, format, geometry);
+          _composeCornerArt(page, format, geometry);
 
           // Flow the chapter's prose, spilling onto new pages as needed.
           var isFirstParagraphOfChapter = true;
@@ -676,6 +732,10 @@ class BookLayoutEngine {
               isFirstParagraphOfChapter = false;
             }
           }
+
+          // The tailpiece closes the chapter, under its last line. A chapter
+          // with no prose has no last line to close.
+          if (!chapter.isEmpty) _composeTailpiece(current, format, geometry);
 
           if (chapter.isEmpty) {
             issues.add(BookLayoutIssue(
@@ -1118,6 +1178,70 @@ class BookLayoutEngine {
   }
 
   /// Lays the chapter opener out and leaves the page cursor below it.
+  /// Sets the corner art in the corners of a chapter's opening page.
+  ///
+  /// A corner piece is line work along two edges with nothing in the angle
+  /// between them, so it is set with its outer corner a little outside the
+  /// text block: the line work runs in the margins and the block's own
+  /// corner, where the type is, stays clear. The size follows the text block
+  /// so the same art suits a pocket book and a large one.
+  void _composeCornerArt(
+    _BuiltPage page,
+    BookFormat format,
+    _Geometry geometry,
+  ) {
+    final art = pageArt.corner;
+    if (art == null || art.aspect <= 0) return;
+    final width = (geometry.textWidthPt * 0.28).clamp(44.0, 104.0);
+    final height = width / art.aspect;
+    final reach = width * 0.36;
+    final right = geometry.textWidthPt + reach - width;
+    final bottom = geometry.textHeightPt + reach - height;
+    void place(BookPageArtSlot slot, double x, double y) =>
+        page.elements.add(LayoutPageArt(
+          slot: slot,
+          imageBytes: art.bytes,
+          x: x,
+          y: y,
+          widthPt: width,
+          heightPt: height,
+        ));
+    place(BookPageArtSlot.cornerTopLeft, -reach, -reach);
+    place(BookPageArtSlot.cornerTopRight, right, -reach);
+    if (format.chapter.cornerArt == CornerArtPlacement.allFour) {
+      place(BookPageArtSlot.cornerBottomLeft, -reach, bottom);
+      place(BookPageArtSlot.cornerBottomRight, right, bottom);
+    }
+  }
+
+  /// Sets the tailpiece centred under the chapter's last line.
+  ///
+  /// Only where the page has room for it: a tailpiece is an ending, and one
+  /// pushed onto a page of its own would be a blank page with a decoration
+  /// on it. So a chapter that runs to the foot of its last page goes without.
+  void _composeTailpiece(
+    _BuiltPage? page,
+    BookFormat format,
+    _Geometry geometry,
+  ) {
+    final art = pageArt.tailpiece;
+    if (page == null || art == null || art.aspect <= 0) return;
+    final leading = format.typography.leadingPt;
+    final width = geometry.textWidthPt * 0.45;
+    final height = width / art.aspect;
+    final top = page.cursorY + leading * 1.2;
+    if (top + height > geometry.textHeightPt) return;
+    page.elements.add(LayoutPageArt(
+      slot: BookPageArtSlot.tailpiece,
+      imageBytes: art.bytes,
+      x: (geometry.textWidthPt - width) / 2,
+      y: top,
+      widthPt: width,
+      heightPt: height,
+    ));
+    page.cursorY = top + height;
+  }
+
   void _composeChapterOpener(
     _BuiltPage page,
     BookChapterContent chapter,

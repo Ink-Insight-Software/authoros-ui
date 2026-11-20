@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.8.0
+
+- **Page art** (November 20, 2026, for AuthorOS Write's owner-drawn
+  designs): a corner piece on each chapter's opening page and a tailpiece
+  under a chapter's last line.
+  - `BookPageArt` (a corner and a tailpiece, each a `BookOrnamentArt`) is
+    handed to `BookLayoutEngine(pageArt: …)`, off the format for the
+    ornament's reason. A book with none is laid out exactly as before, and
+    supplying art never moves a line of type or adds a page.
+  - `ChapterStyle.cornerArt` (`CornerArtPlacement.topTwo` | `allFour`) says
+    which corners; it is in the format's JSON and absent formats read as
+    `topTwo`.
+  - The engine emits `LayoutPageArt` with a `BookPageArtSlot`. The corner
+    art is drawn for the top-left and mirrored into the others
+    (`slot.flipX`, `slot.flipY`); a corner reaches a little out of the text
+    block so its line work runs in the margins. The tailpiece is centred
+    under the last line and left out where the page has no room.
+  - `BookPdfRenderer` draws it, mirrored in place.
+  - **`LayoutElement` is sealed and has a new subclass**, so an application
+    that switches over it exhaustively has one more case to draw.
+
 ## 0.7.3
 
 - **Pins authoros-core 0.23.0** (November 16, 2026): AuthorOS Write 3.0's

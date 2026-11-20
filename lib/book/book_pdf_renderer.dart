@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:pdf/pdf.dart';
+import 'package:vector_math/vector_math_64.dart' show Matrix4;
 import 'package:xml/xml.dart';
 
 import 'book_fonts.dart';
@@ -228,6 +229,17 @@ class BookPdfRenderer {
             width: element.widthPt,
             height: element.heightPt,
           );
+        case LayoutPageArt():
+          _drawImage(
+            canvas,
+            imageFor(element.imageBytes),
+            left: page.textBlockLeftPt + element.x,
+            top: flip(element.y),
+            width: element.widthPt,
+            height: element.heightPt,
+            flipX: element.slot.flipX,
+            flipY: element.slot.flipY,
+          );
       }
     }
 
@@ -333,8 +345,29 @@ class BookPdfRenderer {
     required double top,
     required double width,
     required double height,
-  }) =>
+    bool flipX = false,
+    bool flipY = false,
+  }) {
+    if (!flipX && !flipY) {
       canvas.drawImage(image, left, top - height, width, height);
+      return;
+    }
+    // A mirrored corner: the same rectangle, the picture turned over inside
+    // it. PDF draws an image into the unit square under the current matrix,
+    // so a negative scale with the origin moved to the far edge mirrors it
+    // in place.
+    final sx = flipX ? -width : width;
+    final sy = flipY ? -height : height;
+    final tx = flipX ? left + width : left;
+    final ty = flipY ? top : top - height;
+    canvas
+      ..saveContext()
+      ..setTransform(Matrix4.identity()
+        ..translateByDouble(tx, ty, 0, 1)
+        ..scaleByDouble(sx, sy, 1, 1))
+      ..drawImage(image, 0, 0, 1, 1)
+      ..restoreContext();
+  }
 
   void _diamond(PdfGraphics canvas, double cx, double cy, double radius) {
     canvas

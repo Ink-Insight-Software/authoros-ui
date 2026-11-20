@@ -1192,7 +1192,7 @@ class BookLayoutEngine {
   ) {
     final art = pageArt.corner;
     if (art == null || art.aspect <= 0) return;
-    final width = (geometry.textWidthPt * 0.22).clamp(36.0, 84.0);
+    final width = (geometry.textWidthPt * 0.28).clamp(44.0, 104.0);
     final height = width / art.aspect;
     final reach = width * 0.36;
     final right = geometry.textWidthPt + reach - width;

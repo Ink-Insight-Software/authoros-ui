@@ -215,10 +215,7 @@ class _Metrics {
     );
   }
 
-  static String _fontName(BookFontFamilyId family) => switch (family) {
-        BookFontFamilyId.merriweather => 'Merriweather',
-        BookFontFamilyId.inter => 'Inter',
-      };
+  static String _fontName(BookFontFamilyId family) => family.label;
 }
 
 class BookDocxExporter {

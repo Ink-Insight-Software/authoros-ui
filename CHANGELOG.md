@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1
+
+- **Young Serif** joins `BookFontFamilyId` as `youngSerif` (November 21,
+  2026, the owner's choice for the face their specimen sheet called "The
+  Youngest Serif"; SIL Open Font License). One style, regular, at
+  `assets/fonts/YoungSerif-400.ttf`.
+
 ## 0.9.0
 
 - **Seven more book families** (November 21, 2026, the owner's choices for

@@ -117,6 +117,8 @@ class BookFontAssets {
         'assets/fonts/AnticDidone-400.ttf',
     const BookFontFace(BookFontFamilyId.lancelot, BookFontStyleId.regular):
         'assets/fonts/Lancelot-400.ttf',
+    const BookFontFace(BookFontFamilyId.youngSerif, BookFontStyleId.regular):
+        'assets/fonts/YoungSerif-400.ttf',
   };
 
   /// The families [load] reads when it is not told which: the two the engine

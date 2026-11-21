@@ -255,6 +255,10 @@ enum BookFontFamilyId {
   antic,
   anticDidone,
   lancelot,
+
+  /// Young Serif, the owner's choice (November 21, 2026) for the face their
+  /// specimen sheet called "The Youngest Serif". One style: regular.
+  youngSerif,
 }
 
 /// What a family is called, and what kind of face it is.
@@ -271,6 +275,7 @@ extension BookFontFamilyInfo on BookFontFamilyId {
         BookFontFamilyId.antic => 'Antic',
         BookFontFamilyId.anticDidone => 'Antic Didone',
         BookFontFamilyId.lancelot => 'Lancelot',
+        BookFontFamilyId.youngSerif => 'Young Serif',
       };
 
   /// Whether a reader without the face should fall back to a serif.

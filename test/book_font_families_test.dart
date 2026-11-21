@@ -43,6 +43,20 @@ void main() {
     expect(back.displayFamily, BookFontFamilyId.lancelot);
   });
 
+  test('Young Serif is a serif family with one style, its regular', () {
+    expect(BookFontFamilyId.youngSerif.label, 'Young Serif');
+    expect(BookFontFamilyId.youngSerif.isSerif, isTrue);
+    expect(
+        BookFontAssets.assetPaths.keys
+            .where((face) => face.family == BookFontFamilyId.youngSerif)
+            .map((face) => face.style),
+        [BookFontStyleId.regular]);
+    expect(
+        BookFontAssets.assetPaths[const BookFontFace(
+            BookFontFamilyId.youngSerif, BookFontStyleId.regular)],
+        'assets/fonts/YoungSerif-400.ttf');
+  });
+
   test('the first two families are always read', () {
     expect(BookFontAssets.defaultFamilies,
         {BookFontFamilyId.merriweather, BookFontFamilyId.inter});

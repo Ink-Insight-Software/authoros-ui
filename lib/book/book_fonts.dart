@@ -135,6 +135,27 @@ class BookFontAssets {
 
   ByteData? bytesFor(BookFontFace face) => _data[face];
 
+  /// The face in hand that stands in for [requested], or null when not even
+  /// the fallback is.
+  ///
+  /// Degrades along the axis that costs the least: the slope first, then the
+  /// weight, then the family. One rule, used by the measurer and by every
+  /// renderer, so a title measured in a family's regular is drawn in it. A
+  /// renderer with a rule of its own drew a bold-less family's headings in
+  /// the fallback family while the layout had measured them in its own.
+  BookFontFace? nearest(BookFontFace requested) {
+    for (final candidate in [
+      requested,
+      if (requested.style == BookFontStyleId.boldItalic)
+        requested.withStyle(BookFontStyleId.bold),
+      requested.withStyle(BookFontStyleId.regular),
+      fallbackFace,
+    ]) {
+      if (_data.containsKey(candidate)) return candidate;
+    }
+    return null;
+  }
+
   Iterable<BookFontFace> get availableFaces => _data.keys;
 
   bool has(BookFontFace face) => _data.containsKey(face);

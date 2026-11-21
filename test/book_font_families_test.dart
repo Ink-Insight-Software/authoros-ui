@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:authoros_ui/book/book_fonts.dart';
 import 'package:authoros_ui/book/book_format.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,5 +48,31 @@ void main() {
         {BookFontFamilyId.merriweather, BookFontFamilyId.inter});
     expect(BookFontAssets.defaultFamilies,
         contains(BookFontAssets.fallbackFace.family));
+  });
+
+  test('a style a family lacks stays in the family', () {
+    ByteData blank() => ByteData(4);
+    final assets = BookFontAssets({
+      BookFontFace.merriweatherRegular: blank(),
+      BookFontFace.merriweatherBold: blank(),
+      const BookFontFace(BookFontFamilyId.radley, BookFontStyleId.regular):
+          blank(),
+      const BookFontFace(BookFontFamilyId.radley, BookFontStyleId.italic):
+          blank(),
+    });
+    BookFontFace radley(BookFontStyleId style) =>
+        BookFontFace(BookFontFamilyId.radley, style);
+    expect(assets.nearest(radley(BookFontStyleId.italic)),
+        radley(BookFontStyleId.italic));
+    // No bold was drawn for Radley: its regular stands in, not Merriweather.
+    expect(assets.nearest(radley(BookFontStyleId.bold)),
+        radley(BookFontStyleId.regular));
+    expect(assets.nearest(radley(BookFontStyleId.boldItalic)),
+        radley(BookFontStyleId.regular));
+    // A family not in hand at all is the fallback's.
+    expect(
+        assets.nearest(const BookFontFace(
+            BookFontFamilyId.lancelot, BookFontStyleId.regular)),
+        BookFontAssets.fallbackFace);
   });
 }

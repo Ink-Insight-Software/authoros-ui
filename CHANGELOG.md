@@ -15,6 +15,10 @@
   they saw) and whatever `families` names beside them; `familiesFor(format)`
   says which a format uses and `covers` whether they are in hand. Loading
   every face would have cost every book Gentium Plus's 3.4 MB.
+- **`BookFontAssets.nearest`**: the one rule for a face that is not in
+  hand (slope, then weight, then family). `BookPdfRenderer` now uses it; it
+  had drawn a missing style in the fallback family while the layout measured
+  it in the face's own, which showed once a family without a bold existed.
 - The Word exporter names the chosen family; the EPUB stylesheet's stack
   follows `label` and `isSerif`.
 - **`BookFontFamilyId` has new values**, so an application that switches

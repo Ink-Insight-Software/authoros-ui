@@ -79,8 +79,10 @@ class BookPdfRenderer {
 
     final fonts = <BookFontFace, PdfFont>{};
     PdfFont fontFor(BookFontFace face) => fonts.putIfAbsent(face, () {
-          final bytes = assets.bytesFor(face) ??
-              assets.bytesFor(BookFontAssets.fallbackFace);
+          // The layout's rule for a face that is not shipped, so the page is
+          // drawn in what it was measured in.
+          final stand = assets.nearest(face);
+          final bytes = stand == null ? null : assets.bytesFor(stand);
           if (bytes == null) {
             throw StateError(
               'No font available for $face and no fallback is bundled.',

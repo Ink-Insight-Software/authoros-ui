@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.9.0
+
+- **Seven more book families** (November 21, 2026, the owner's choices for
+  AuthorOS Write, each under the SIL Open Font License): Radley, Gentium
+  Plus, Solway, Solway Light, Antic, Antic Didone and Lancelot join
+  Merriweather and Inter in `BookFontFamilyId`. `BookFontFamilyInfo` gives
+  each its `label` and whether it `isSerif`.
+- `BookFontAssets.assetPaths` names their files. A family ships the styles
+  its designer drew; a missing style still degrades to the family's own
+  regular.
+- **`BookFontAssets.load` reads only what is asked for.** It always reads
+  `defaultFamilies` (Merriweather and Inter, so existing callers see what
+  they saw) and whatever `families` names beside them; `familiesFor(format)`
+  says which a format uses and `covers` whether they are in hand. Loading
+  every face would have cost every book Gentium Plus's 3.4 MB.
+- **`BookFontAssets.nearest`**: the one rule for a face that is not in
+  hand (slope, then weight, then family). `BookPdfRenderer` now uses it; it
+  had drawn a missing style in the fallback family while the layout measured
+  it in the face's own, which showed once a family without a bold existed.
+- The Word exporter names the chosen family; the EPUB stylesheet's stack
+  follows `label` and `isSerif`.
+- **`BookFontFamilyId` has new values**, so an application that switches
+  over it exhaustively has more cases to name.
+
 ## 0.8.0
 
 - **Page art** (November 20, 2026, for AuthorOS Write's owner-drawn

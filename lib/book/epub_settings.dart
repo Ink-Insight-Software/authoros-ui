@@ -110,10 +110,9 @@ class EpubSettings {
   ///
   /// A generic fallback always trails the named face so a reader that has
   /// neither the embedded font nor the family still sets the book sensibly.
-  String get fontFamilyStack => switch (bodyFamily) {
-        BookFontFamilyId.merriweather => "'Merriweather', Georgia, serif",
-        BookFontFamilyId.inter => "'Inter', Helvetica, Arial, sans-serif",
-      };
+  String get fontFamilyStack => bodyFamily.isSerif
+      ? "'${bodyFamily.label}', Georgia, serif"
+      : "'${bodyFamily.label}', Helvetica, Arial, sans-serif";
 
   String get cssTextAlign =>
       alignment == BookAlignment.justified ? 'justify' : 'left';

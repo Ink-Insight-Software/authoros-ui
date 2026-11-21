@@ -86,9 +86,75 @@ class BookFontAssets {
     BookFontFace.interItalic: 'assets/fonts/Inter-400-Italic.ttf',
     const BookFontFace(BookFontFamilyId.inter, BookFontStyleId.boldItalic):
         'assets/fonts/Inter-700-Italic.ttf',
+    // The owner's choices, November 21, 2026. A family ships the styles its
+    // designer drew; a style it lacks degrades through [resolve] to the
+    // family's own regular, never to another family.
+    const BookFontFace(BookFontFamilyId.radley, BookFontStyleId.regular):
+        'assets/fonts/Radley-400.ttf',
+    const BookFontFace(BookFontFamilyId.radley, BookFontStyleId.italic):
+        'assets/fonts/Radley-400-Italic.ttf',
+    const BookFontFace(BookFontFamilyId.gentiumPlus, BookFontStyleId.regular):
+        'assets/fonts/GentiumPlus-400.ttf',
+    const BookFontFace(BookFontFamilyId.gentiumPlus, BookFontStyleId.bold):
+        'assets/fonts/GentiumPlus-700.ttf',
+    const BookFontFace(BookFontFamilyId.gentiumPlus, BookFontStyleId.italic):
+        'assets/fonts/GentiumPlus-400-Italic.ttf',
+    const BookFontFace(
+            BookFontFamilyId.gentiumPlus, BookFontStyleId.boldItalic):
+        'assets/fonts/GentiumPlus-700-Italic.ttf',
+    const BookFontFace(BookFontFamilyId.solway, BookFontStyleId.regular):
+        'assets/fonts/Solway-400.ttf',
+    const BookFontFace(BookFontFamilyId.solway, BookFontStyleId.bold):
+        'assets/fonts/Solway-700.ttf',
+    // Solway Light: the Light weight as the text, Medium as its bold.
+    const BookFontFace(BookFontFamilyId.solwayLight, BookFontStyleId.regular):
+        'assets/fonts/Solway-300.ttf',
+    const BookFontFace(BookFontFamilyId.solwayLight, BookFontStyleId.bold):
+        'assets/fonts/Solway-500.ttf',
+    const BookFontFace(BookFontFamilyId.antic, BookFontStyleId.regular):
+        'assets/fonts/Antic-400.ttf',
+    const BookFontFace(BookFontFamilyId.anticDidone, BookFontStyleId.regular):
+        'assets/fonts/AnticDidone-400.ttf',
+    const BookFontFace(BookFontFamilyId.lancelot, BookFontStyleId.regular):
+        'assets/fonts/Lancelot-400.ttf',
   };
 
+  /// The families [load] reads when it is not told which: the two the engine
+  /// began with. A caller that sets a book in another passes it, so nobody
+  /// pays for a face no page uses.
+  static const defaultFamilies = {
+    BookFontFamilyId.merriweather,
+    BookFontFamilyId.inter,
+  };
+
+  /// The families a format's pages are set in.
+  static Set<BookFontFamilyId> familiesFor(BookFormat format) => {
+        format.typography.bodyFamily,
+        format.typography.displayFamily,
+      };
+
   ByteData? bytesFor(BookFontFace face) => _data[face];
+
+  /// The face in hand that stands in for [requested], or null when not even
+  /// the fallback is.
+  ///
+  /// Degrades along the axis that costs the least: the slope first, then the
+  /// weight, then the family. One rule, used by the measurer and by every
+  /// renderer, so a title measured in a family's regular is drawn in it. A
+  /// renderer with a rule of its own drew a bold-less family's headings in
+  /// the fallback family while the layout had measured them in its own.
+  BookFontFace? nearest(BookFontFace requested) {
+    for (final candidate in [
+      requested,
+      if (requested.style == BookFontStyleId.boldItalic)
+        requested.withStyle(BookFontStyleId.bold),
+      requested.withStyle(BookFontStyleId.regular),
+      fallbackFace,
+    ]) {
+      if (_data.containsKey(candidate)) return candidate;
+    }
+    return null;
+  }
 
   Iterable<BookFontFace> get availableFaces => _data.keys;
 
@@ -98,20 +164,33 @@ class BookFontAssets {
   ///
   /// The result is cached for the session: parsing is not free and the studio
   /// repaginates on every format tweak.
-  static Future<BookFontAssets> load() async {
-    final cached = _cache;
-    if (cached != null) return cached;
+  ///
+  /// [families] are the ones wanted beyond [defaultFamilies], which are
+  /// always read: the fallback face is among them, and every caller that
+  /// predates the choice of a family expects both. Each face is read once
+  /// however often it is asked for.
+  static Future<BookFontAssets> load({
+    Iterable<BookFontFamilyId> families = const [],
+  }) async {
+    final wanted = {...defaultFamilies, ...families};
     final data = <BookFontFace, ByteData>{};
     for (final entry in assetPaths.entries) {
-      data[entry.key] = await rootBundle.load(entry.value);
+      if (!wanted.contains(entry.key.family)) continue;
+      data[entry.key] =
+          _faces[entry.key] ??= await rootBundle.load(entry.value);
     }
-    return _cache = BookFontAssets(data);
+    return BookFontAssets(data);
   }
 
-  static BookFontAssets? _cache;
+  /// Whether every family in [families] is already in hand.
+  bool covers(Iterable<BookFontFamilyId> families) => families.every(
+        (family) => _data.keys.any((face) => face.family == family),
+      );
+
+  static final Map<BookFontFace, ByteData> _faces = {};
 
   /// Drops the cache. For tests.
-  static void resetCache() => _cache = null;
+  static void resetCache() => _faces.clear();
 }
 
 /// Measures with the same font objects the PDF exporter will use.

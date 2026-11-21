@@ -239,7 +239,46 @@ class BookMargins {
 /// Faces are referenced by id rather than by asset path so a format that names
 /// a face the build does not ship degrades to the default with a recorded
 /// issue, instead of failing to render.
-enum BookFontFamilyId { merriweather, inter }
+///
+/// Merriweather and Inter are the two the engine began with. The rest are
+/// the owner's choices for AuthorOS Write (November 21, 2026), each under the
+/// SIL Open Font License. [solwayLight] is Solway's Light weight offered as a
+/// family of its own, with Medium for its bold: a style here is regular or
+/// bold, so a lighter book face is a family and not a third weight.
+enum BookFontFamilyId {
+  merriweather,
+  inter,
+  radley,
+  gentiumPlus,
+  solway,
+  solwayLight,
+  antic,
+  anticDidone,
+  lancelot,
+}
+
+/// What a family is called, and what kind of face it is.
+extension BookFontFamilyInfo on BookFontFamilyId {
+  /// The name an author reads, and the name the family is declared under in
+  /// an application's font list.
+  String get label => switch (this) {
+        BookFontFamilyId.merriweather => 'Merriweather',
+        BookFontFamilyId.inter => 'Inter',
+        BookFontFamilyId.radley => 'Radley',
+        BookFontFamilyId.gentiumPlus => 'Gentium Plus',
+        BookFontFamilyId.solway => 'Solway',
+        BookFontFamilyId.solwayLight => 'Solway Light',
+        BookFontFamilyId.antic => 'Antic',
+        BookFontFamilyId.anticDidone => 'Antic Didone',
+        BookFontFamilyId.lancelot => 'Lancelot',
+      };
+
+  /// Whether a reader without the face should fall back to a serif.
+  bool get isSerif => switch (this) {
+        BookFontFamilyId.inter || BookFontFamilyId.antic => false,
+        _ => true,
+      };
+}
 
 /// The weight and slope of one face within a family.
 enum BookFontStyleId { regular, bold, italic, boldItalic }
